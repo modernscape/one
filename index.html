@@ -1,22 +1,293 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>one</title>
-    <style>
-        * {
-            margin: 0;
-        }
-    </style>
+	<meta charset="UTF-8">
+	<title>one</title>
+	<script src="../three.js_r79/build/three.js"></script>
+	<!-- Three.js用ライブラリ -->
+	<script src="../three.js_r79/examples/js/controls/TrackballControls.js">
+	</script> <!-- トラックボール用ライブラリ -->
+	<script src="../three.js_r79/examples/js/loaders/OBJLoader.js"></script>
+	<style>
+		* {
+			padding: 0px;
+			margin: 0px
+		}
+
+		div#canvas-frame {
+			width: 1000px;
+			/* 横幅 */
+			height: 1000px;
+			/* 縦幅 */
+			overflow: hidden;
+		}
+
+		body {
+			background-color: #000;
+		}
+	</style>
+	<script>
+		////////////////////////////////////////////////////////////////////
+		// windowイベントの定義
+		////////////////////////////////////////////////////////////////////
+		window.addEventListener("load", function () {
+			threeStart(); //Three.jsのスタート関数の実行
+		});
+		////////////////////////////////////////////////////////////////////
+		// Three.jsスタート関数の定義
+		////////////////////////////////////////////////////////////////////
+		function threeStart() {
+			initThree(); //Three.js初期化関数の実行
+			initLight(); //光源初期化関数の実行
+			initObject(); //オブジェクト初期化関数の実行
+			initCamera(); //カメラ初期化関数の実行
+			loop(); //無限ループ関数の実行
+		}
+		////////////////////////////////////////////////////////////////////
+		// Three.js初期化関数の定義
+		////////////////////////////////////////////////////////////////////
+		//グローバル変数の宣言
+		var renderer, //レンダラーオブジェクト
+			scene, //シーンオブジェクト
+			canvasFrame; //キャンバスフレームのDOM要素
+		function initThree() {
+			//キャンバスフレームDOM要素の取得
+			canvasFrame = document.getElementById('canvas-frame');
+			var w = document.documentElement.clientWidth;
+			var h = document.documentElement.clientHeight;
+			canvasFrame.style.width = w + "px";
+			canvasFrame.style.height = h + "px";
+			//レンダラーオブジェクトの生成
+			renderer = new THREE.WebGLRenderer({
+				antialias: true
+			});
+			//renderer = new THREE.CanvasRenderer();//<-----------------------------（canvasレンダラー）
+
+			if (!renderer) alert('Three.js の初期化に失敗しました');
+			//レンダラーのサイズの設定
+			renderer.setSize(canvasFrame.clientWidth, canvasFrame.clientHeight);
+			//キャンバスフレームDOM要素にcanvas要素を追加
+			canvasFrame.appendChild(renderer.domElement);
+
+			//レンダラークリアーカラーの設定
+			renderer.setClearColor(0x000000, 1.0);
+
+			//シーンオブジェクトの生成
+			scene = new THREE.Scene();
+			window.onresize = resizeCanvas;
+		}
+
+		function resizeCanvas() {
+			console.log('resized!');
+			var w = document.documentElement.clientWidth;
+			var h = document.documentElement.clientHeight;
+			canvasFrame.style.width = w + "px";
+			canvasFrame.style.height = h + "px";
+			renderer.setSize(canvasFrame.clientWidth, canvasFrame.clientHeight);
+		}
+		////////////////////////////////////////////////////////////////////
+		// カメラ初期化関数の定義
+		////////////////////////////////////////////////////////////////////
+		//グローバル変数の宣言
+		var camera; //カメラオブジェクト
+		function initCamera() {
+			//カメラオブジェクトの生成
+			camera = new THREE.PerspectiveCamera(45, canvasFrame.clientWidth /
+				canvasFrame.clientHeight, 1, 10000);
+			//カメラの位置の設定
+			camera.position.set(0, 0, 100);
+			//カメラの上ベクトルの設定
+			camera.up.set(0, 1, 0);
+			//カメラの中心位置ベクトルの設定
+			camera.lookAt({
+				x: 0,
+				y: 0,
+				z: 0
+			}); //トラックボール利用時は自動的に無効
+
+			//トラックボールオブジェクトの宣言
+			trackball = new THREE.TrackballControls(camera, canvasFrame);
+
+			//トラックボール動作範囲のサイズとオフセットの設定
+			trackball.screen.width = canvasFrame.clientWidth; //横幅
+			trackball.screen.height = canvasFrame.clientHeight; //縦幅
+			trackball.screen.offsetLeft = canvasFrame.getBoundingClientRect()
+				.left; //左オフセット
+			trackball.screen.offsetTop = canvasFrame.getBoundingClientRect()
+				.top; //右オフセット
+
+			//トラックボールの回転無効化と回転速度の設定
+			trackball.noRotate = false;
+			trackball.rotateSpeed = 4.0;
+
+			//トラックボールの拡大無効化と拡大速度の設定
+			trackball.noZoom = false;
+			trackball.zoomSpeed = 4.0;
+
+			//トラックボールのカメラ中心移動の無効化と中心速度の設定
+			trackball.noPan = false;
+			trackball.panSpeed = 1.0;
+			trackball.target = new THREE.Vector3(0, 0, 0);
+
+			//トラックボールのスタティックムーブの有効化
+			trackball.staticMoving = true;
+			//トラックボールのダイナミックムーブ時の減衰定数
+			trackball.dynamicDampingFactor = 0.3;
+		}
+		////////////////////////////////////////////////////////////////////
+		// 光源初期化関数の定義
+		////////////////////////////////////////////////////////////////////
+		//グローバル変数の宣言
+		var directionalLight; //平行光源オブジェクト
+		var lighthelper; //平行光源可視化オブジェクト
+		function initLight() {
+			//平行光源オブジェクトの生成
+			directionalLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+			//平行光源オブジェクトの位置の設定
+			directionalLight.position.set(0, 0, 20);
+
+			//平行光源オブジェクトのシーンへの追加
+			scene.add(directionalLight);
+
+			//平行光源オブジェクトの生成
+			directionalLight2 = new THREE.DirectionalLight(0xFFFFFF, 1);
+			//平行光源オブジェクトの位置の設定
+			directionalLight2.position.set(0, 10, -20);
+
+			//平行光源オブジェクトのシーンへの追加
+			scene.add(directionalLight2);
+
+			//環境光オブジェクトの生成
+			ambientLight = new THREE.AmbientLight(0x000000, 0.1);
+			scene.add(ambientLight);
+
+			//平行光源可視化オブジェクトの生成
+			lighthelper = new THREE.DirectionalLightHelper(directionalLight, 10);
+			//平行光源可視化オブジェクトのシーンへの追加
+			scene.add(lighthelper);
+
+			//平行光源可視化オブジェクトの生成
+			lighthelper2 = new THREE.DirectionalLightHelper(directionalLight2, 10);
+			//平行光源可視化オブジェクトのシーンへの追加
+			scene.add(lighthelper2);
+
+
+		}
+		////////////////////////////////////////////////////////////////////
+		// オブジェクト初期化関数の定義
+		////////////////////////////////////////////////////////////////////
+		//グローバル変数の宣言
+		var axis; //軸オブジェクト
+
+		function initObject() {
+			// 軸オブジェクトの生成
+			axis = new THREE.AxisHelper(100);
+			// 軸オブジェクトのシーンへの追加
+			scene.add(axis);
+			// 軸オブジェクトの位置座標を設定
+			axis.position.set(0, 0, 0);
+
+			//画像データの読み込みとテクスチャオブジェクトの生成
+			var texture = new THREE.TextureLoader().load(
+				'tex/tex_5.png');
+			texture.wrapS = THREE.RepeatWapping;
+			texture.wrapT = THREE.RepeatWapping;
+			texture.repeat.set(5, 5);
+
+			//ローダーオブジェクト
+			var loader = new THREE.OBJLoader();
+			loader.load('obj/plane_02.obj',
+				function (object) {
+					//読み込み確認
+					console.log(object); //Groupクラスのオブジェクト
+					//子要素の走査
+					object.traverse(function (mesh) {
+						if (mesh instanceof THREE.Mesh) {
+							//テクスチャマッピングの実装
+							mesh.material.map = texture;
+							mesh.material.needsUpdate = true;
+							mesh.material.side = THREE.DoubleSide;
+
+						}
+					});
+					//位置座標と姿勢の指定			
+					// object.position.set(0, -35, 0);
+					object.scale.set(2, 2, 2);
+					//シーンへの追加
+					scene.add(object);
+				}
+			);
+		}
+
+		////////////////////////////////////////////////////////////////////
+		// 無限ループ関数の定義
+		////////////////////////////////////////////////////////////////////
+		//グローバル変数の宣言
+		var step = 0; //ステップ数
+		var t = 0;
+
+		function loop() {
+			//トラックボールによるカメラオブジェクトのプロパティの更新
+			trackball.update();
+
+			//ステップ数のインクリメント
+			step++;
+
+			//レンダリング
+			renderer.render(scene, camera);
+
+			//画像生成
+			makePicture();
+
+			//「loop()」関数の呼び出し
+			requestAnimationFrame(loop);
+		}
+
+		//////////////////////////////////////////////
+		// 画像作成用	
+		//////////////////////////////////////////////
+		var makePictureFlag = false;
+
+		//画像作成用イベント
+		window.addEventListener('keydown', function (e) {
+
+			//キーボードイベント時のキー取得
+			var keyChar = String.fromCharCode(e.keyCode).toLowerCase();
+
+			//キーボードの「s」が押された場合
+			if (keyChar == "s") {
+				makePictureFlag = true;
+			}
+
+		});
+		//画像作成関数
+		function makePicture() {
+
+			if (!makePictureFlag) return;
+
+			//グラフィックスが描画されたcanvas要素
+			var canvas = renderer.domElement;
+
+			//a要素の生成
+			var a = document.createElement("a");
+			//canvas要素→DataURL形式
+			a.href = canvas.toDataURL("image/png");
+			//PNGファイル名の命名
+			a.download = "picture";
+			a.innerHTML = "ダウンロード";
+
+			//id="thumbnails"のdiv要素の子要素にa要素を追加	
+			document.getElementsByTagName("body")[0].appendChild(a);
+
+			makePictureFlag = false;
+
+		}
+	</script>
 </head>
 
 <body>
-    <!-- ちりを表示 -->
-    one
-    one
+	<div id="canvas-frame"></div><!-- canvas要素を配置するdiv要素 -->
 </body>
 
 </html>
