@@ -123,7 +123,7 @@
 			trackball.rotateSpeed = 4.0;
 
 			//トラックボールの拡大無効化と拡大速度の設定
-			trackball.noZoom = false;
+			trackball.noZoom = true; //false;
 			trackball.zoomSpeed = 4.0;
 
 			//トラックボールのカメラ中心移動の無効化と中心速度の設定
@@ -213,7 +213,8 @@
 							mesh.material.map = texture;
 							mesh.material.needsUpdate = true;
 							mesh.material.side = THREE.DoubleSide;
-
+							mesh.material.alphaMap = texture;
+							mesh.material.transparent = true;
 						}
 					});
 					//位置座標と姿勢の指定			
