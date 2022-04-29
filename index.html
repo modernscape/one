@@ -10,6 +10,8 @@
 	<script src="js/TrackballControls.js">
 	</script> <!-- トラックボール用ライブラリ -->
 	<script src="js/OBJLoader.js"></script>
+	<script src="js/MTLLoader.js"></script>
+	<!-- <script src="js/DDSLoader.js"></script> -->
 	<style>
 		* {
 			padding: 0px;
@@ -195,33 +197,89 @@
 
 			//画像データの読み込みとテクスチャオブジェクトの生成
 			var texture = new THREE.TextureLoader().load(
-				'tex/tex_5.png');
+				'tex/tex_5.png'); // 透過用
 			texture.wrapS = THREE.RepeatWapping;
 			texture.wrapT = THREE.RepeatWapping;
-			texture.repeat.set(5, 5);
+			texture.repeat.set(2, 2);
 
-			//ローダーオブジェクト
-			var loader = new THREE.OBJLoader();
-			loader.load('obj/plane_02.obj',
-				function (object) {
-					//読み込み確認
-					console.log(object); //Groupクラスのオブジェクト
-					//子要素の走査
-					object.traverse(function (mesh) {
-						if (mesh instanceof THREE.Mesh) {
-							//テクスチャマッピングの実装
-							mesh.material.map = texture;
-							mesh.material.needsUpdate = true;
-							mesh.material.side = THREE.DoubleSide;
-							mesh.material.alphaMap = texture;
-							mesh.material.transparent = true;
+			var mltloader = new THREE.MTLLoader();
+			mltloader.setMaterialOptions({
+				side: THREE.DoubleSide,
+				wrap: THREE.RepeatWrapping
+			});
+			mltloader.setPath('obj/');
+			mltloader.load('03.mtl', // マテリアル
+				function (materials) {
+					var loader = new THREE.OBJLoader();
+					loader.setMaterials(materials);
+					// console.log(materials);
+					loader.load('obj/03.obj',
+						function (object) {
+							//読み込み確認
+							//console.log(object); //Groupクラスのオブジェクト
+							//子要素の走査
+							object.traverse(function (mesh) {
+								if (mesh instanceof THREE.Mesh) {
+									//テクスチャマッピングの実装
+									// mesh.material.map = texture;
+									mesh.material.needsUpdate = true;
+									// mesh.material.side = THREE
+									// 	.DoubleSide;
+									// mesh.material.alphaMap = texture;
+									mesh.material.transparent = true;
+									mesh.material.opacity = 0.8;
+
+								}
+							});
+
+							//位置座標と姿勢の指定
+							// object.position.set(0, -35, 0);
+							var s = 1;
+							object.scale.set(s, s, s);
+							//シーンへの追加
+							// scene.add(object);
+
+							var count = 300;
+							for (let index = 0; index < count; index++) {
+								var clone = object.clone();
+								clone.traverse(function (mesh) {
+									if (mesh instanceof THREE.Mesh) {
+										// console.log(mesh.material);
+										var num = Math.random() * 10 *
+											16 * 16 * 16 * 16 * 16;
+										var hex = num.toString(16);
+										var i = parseInt(hex,
+											16) // 254
+										var s = '0x' + i.toString(
+												16)
+											.toUpperCase()
+										// "0xFE"
+										console.log(s);
+										var newMat = mesh.material
+											.clone();
+										newMat.color.setHex(s);
+										mesh.material = newMat;
+									}
+								})
+
+								var l = 100;
+								var pos_x = Math.random() * l - l / 2;
+								var pos_y = Math.random() * l - l / 2;
+								var pos_z = Math.random() * l - l / 2;;
+								clone.position.set(pos_x, pos_y, pos_z);
+								var scale = Math.random() * 0.5;
+								clone.scale.set(scale, scale, scale);
+								var r_x = Math.random() * Math.PI * 2;
+								var r_y = Math.random() * Math.PI * 2;
+								var r_z = Math.random() * Math.PI * 2;
+
+								clone.rotation.set(r_x, r_y,
+									r_z);
+								scene.add(clone);
+							}
+
 						}
-					});
-					//位置座標と姿勢の指定			
-					// object.position.set(0, -35, 0);
-					object.scale.set(2, 2, 2);
-					//シーンへの追加
-					scene.add(object);
+					);
 				}
 			);
 		}
