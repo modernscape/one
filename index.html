@@ -244,7 +244,7 @@
 								var clone = object.clone();
 								clone.traverse(function (mesh) {
 									if (mesh instanceof THREE.Mesh) {
-										// console.log(mesh.material);
+
 										var num = Math.random() * 10 *
 											16 * 16 * 16 * 16 * 16;
 										var hex = num.toString(16);
@@ -253,7 +253,6 @@
 										var s = '0x' + i.toString(
 												16)
 											.toUpperCase()
-										// "0xFE"
 										console.log(s);
 										var newMat = mesh.material
 											.clone();
