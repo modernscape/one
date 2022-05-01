@@ -40,7 +40,13 @@
 		////////////////////////////////////////////////////////////////////
 		// Three.jsスタート関数の定義
 		////////////////////////////////////////////////////////////////////
+		var sceneIndex = 0;
+		var sceneCount = 2; // シーンの数
+
 		function threeStart() {
+			sceneIndex = Math.floor(Math.random() * sceneCount);
+			console.log(sceneIndex);
+
 			initThree(); //Three.js初期化関数の実行
 			initLight(); //光源初期化関数の実行
 			initObject(); //オブジェクト初期化関数の実行
@@ -74,7 +80,14 @@
 			canvasFrame.appendChild(renderer.domElement);
 
 			//レンダラークリアーカラーの設定
-			renderer.setClearColor(0x000000, 1.0);
+			switch (sceneIndex) {
+				case 0:
+					renderer.setClearColor(0x000000, 1.0);
+					break
+				case 1:
+					renderer.setClearColor(0xffffff, 1.0);
+					break
+			}
 
 			//シーンオブジェクトの生成
 			scene = new THREE.Scene();
@@ -82,7 +95,7 @@
 		}
 
 		function resizeCanvas() {
-			console.log('resized!');
+
 			var w = document.documentElement.clientWidth;
 			var h = document.documentElement.clientHeight;
 			canvasFrame.style.width = w + "px";
@@ -195,6 +208,7 @@
 			// 軸オブジェクトの位置座標を設定
 			axis.position.set(0, 0, 0);
 
+
 			//画像データの読み込みとテクスチャオブジェクトの生成
 			var texture = new THREE.TextureLoader().load(
 				'tex/tex_5.png'); // 透過用
@@ -212,23 +226,25 @@
 				function (materials) {
 					var loader = new THREE.OBJLoader();
 					loader.setMaterials(materials);
-					// console.log(materials);
 					loader.load('obj/03.obj',
 						function (object) {
-							//読み込み確認
-							//console.log(object); //Groupクラスのオブジェクト
 							//子要素の走査
 							object.traverse(function (mesh) {
-								if (mesh instanceof THREE.Mesh) {
+								if (mesh instanceof THREE
+									.Mesh) {
 									//テクスチャマッピングの実装
 									// mesh.material.map = texture;
-									mesh.material.needsUpdate = true;
+									mesh.material
+										.needsUpdate =
+										true;
 									// mesh.material.side = THREE
 									// 	.DoubleSide;
 									// mesh.material.alphaMap = texture;
-									mesh.material.transparent = true;
-									mesh.material.opacity = 0.8;
-
+									mesh.material
+										.transparent =
+										true;
+									mesh.material.opacity =
+										0.8;
 								}
 							});
 
@@ -238,35 +254,54 @@
 							object.scale.set(s, s, s);
 							//シーンへの追加
 							// scene.add(object);
-
-							var count = 300;
-							for (let index = 0; index < count; index++) {
+							var count = (sceneIndex == 0) ? 300 : 500;
+							for (let index = 0; index <
+								count; index++) {
 								var clone = object.clone();
 								clone.traverse(function (mesh) {
-									if (mesh instanceof THREE.Mesh) {
+									if (mesh instanceof THREE
+										.Mesh) {
 
-										var num = Math.random() * 10 *
-											16 * 16 * 16 * 16 * 16;
-										var hex = num.toString(16);
+										var num = Math
+											.random() *
+											10 *
+											16 * 16 * 16 *
+											16 *
+											16;
+										var hex = num
+											.toString(
+												16);
 										var i = parseInt(hex,
 											16) // 254
-										var s = '0x' + i.toString(
+										var s = '0x' + i
+											.toString(
 												16)
 											.toUpperCase()
-										console.log(s);
-										var newMat = mesh.material
+										var newMat = mesh
+											.material
 											.clone();
-										newMat.color.setHex(s);
-										mesh.material = newMat;
+										if (sceneIndex == 0) {
+											newMat.color.setHex(
+												s);
+										} else {
+											newMat.color.setHex(
+												"0x000000");
+										}
+										mesh.material =
+											newMat;
 									}
 								})
 
 								var l = 100;
 								var pos_x = Math.random() * l - l / 2;
 								var pos_y = Math.random() * l - l / 2;
-								var pos_z = Math.random() * l - l / 2;;
-								clone.position.set(pos_x, pos_y, pos_z);
-								var scale = Math.random() * 0.5;
+								var pos_z = Math.random() * l - l /
+									2;;
+								clone.position.set(pos_x, pos_y,
+									pos_z);
+								var scaleFactor = (sceneIndex == 0) ? 0.5 :
+									0.2;
+								var scale = Math.random() * scaleFactor;
 								clone.scale.set(scale, scale, scale);
 								var r_x = Math.random() * Math.PI * 2;
 								var r_y = Math.random() * Math.PI * 2;
