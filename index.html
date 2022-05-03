@@ -41,7 +41,7 @@
 		// Three.jsスタート関数の定義
 		////////////////////////////////////////////////////////////////////
 		var sceneIndex = 0;
-		var sceneCount = 2; // シーンの数
+																																																																										var sceneCount = 3; // シーンの数
 
 		function threeStart() {
 			sceneIndex = Math.floor(Math.random() * sceneCount);
@@ -82,6 +82,7 @@
 			//レンダラークリアーカラーの設定
 			switch (sceneIndex) {
 				case 0:
+				case 2:
 					renderer.setClearColor(0x000000, 1.0);
 					break
 				case 1:
@@ -210,42 +211,44 @@
 
 
 			//画像データの読み込みとテクスチャオブジェクトの生成
+			var texName = 'tex_5.png';
+			var mltName = '03';
+			var objName = '03';
+			if (sceneIndex == 2) {
+				texName = 'dandelions.png'
+				mltName = '04';
+				objName = '04';
+			}
 			var texture = new THREE.TextureLoader().load(
-				'tex/tex_5.png'); // 透過用
-			texture.wrapS = THREE.RepeatWapping;
-			texture.wrapT = THREE.RepeatWapping;
-			texture.repeat.set(2, 2);
+				'tex/' + texName);
+			// texture.wrapS = THREE.RepeatWapping;
+			// texture.wrapT = THREE.RepeatWapping;
+			// texture.repeat.set(1, 1);
 
 			var mltloader = new THREE.MTLLoader();
 			mltloader.setMaterialOptions({
-				side: THREE.DoubleSide,
-				wrap: THREE.RepeatWrapping
+				side: THREE.DoubleSide
+				// wrap: THREE.RepeatWrapping
 			});
 			mltloader.setPath('obj/');
-			mltloader.load('03.mtl', // マテリアル
+			mltloader.load(mltName + '.mtl', // マテリアル
 				function (materials) {
 					var loader = new THREE.OBJLoader();
 					loader.setMaterials(materials);
-					loader.load('obj/03.obj',
+					loader.load('obj/' + objName + '.obj',
 						function (object) {
 							//子要素の走査
 							object.traverse(function (mesh) {
-								if (mesh instanceof THREE
-									.Mesh) {
+								if (mesh instanceof THREE.Mesh) {
 									//テクスチャマッピングの実装
-									// mesh.material.map = texture;
-									mesh.material
-										.needsUpdate =
-										true;
+									mesh.material.map = texture;
+									mesh.material.needsUpdate = true;
 
 									// mesh.material.side = THREE
 									// 	.DoubleSide;
-									// mesh.material.alphaMap = texture;
-									mesh.material
-										.transparent =
-										true;
-									mesh.material.opacity =
-										0.8;
+									mesh.material.alphaMap = texture;
+									mesh.material.transparent = true;
+									mesh.material.opacity = 1;
 								}
 							});
 
@@ -255,61 +258,63 @@
 							object.scale.set(s, s, s);
 							//シーンへの追加
 							// scene.add(object);
-							var count = (sceneIndex == 0) ? 300 : 500;
+							var count;
+							switch (sceneIndex) {
+								case 0:
+									count = 300;
+									break
+								case 1:
+									count = 500;
+									break
+								case 2:
+									count = 300;
+									break
+							}
 							for (let index = 0; index <
 								count; index++) {
 								var clone = object.clone();
 								clone.traverse(function (mesh) {
-									if (mesh instanceof THREE
-										.Mesh) {
-
-										var num = Math
-											.random() *
-											10 *
-											16 * 16 * 16 *
-											16 *
-											16;
-										var hex = num
-											.toString(
-												16);
-										var i = parseInt(hex,
-											16) // 254
-										var s = '0x' + i
-											.toString(
-												16)
-											.toUpperCase()
-										var newMat = mesh
-											.material
-											.clone();
-										if (sceneIndex == 0) {
-											newMat.color.setHex(
-												s);
-										} else {
-											newMat.color.setHex(
-												"0x000000");
+									if (mesh instanceof THREE.Mesh) {
+										var num = Math.random() * 10 * 16 * 16 * 16 * 16 * 16;
+										var hex = num.toString(16);
+										var i = parseInt(hex, 16) // 254
+										var s = '0x' + i.toString(16).toUpperCase()
+										var newMat = mesh.material.clone();
+										if (sceneIndex == 1) {
+											s = "0x000000";
 										}
-										mesh.material =
-											newMat;
+										if (sceneIndex == 2) {
+											s = "0xffffff";
+										}
+										newMat.color.setHex(s);
+										mesh.material = newMat;
 									}
 								})
 
 								var l = 100;
 								var pos_x = Math.random() * l - l / 2;
 								var pos_y = Math.random() * l - l / 2;
-								var pos_z = Math.random() * l - l /
-									2;;
-								clone.position.set(pos_x, pos_y,
-									pos_z);
-								var scaleFactor = (sceneIndex == 0) ? 0.5 :
-									0.2;
+								var pos_z = Math.random() * l - l / 2;;
+								clone.position.set(pos_x, pos_y, pos_z);
+								var scaleFactor;
+								switch (sceneIndex) {
+									case 0:
+										scaleFactor = 0.5;
+										break
+									case 1:
+										scaleFactor = 0.2;
+										break
+									case 2:
+										scaleFactor = 0.8;
+										break
+								}
 								var scale = Math.random() * scaleFactor;
 								clone.scale.set(scale, scale, scale);
 								var r_x = Math.random() * Math.PI * 2;
 								var r_y = Math.random() * Math.PI * 2;
 								var r_z = Math.random() * Math.PI * 2;
 
-								clone.rotation.set(r_x, r_y,
-									r_z);
+								clone.rotation.set(r_x, r_y, r_z);
 								scene.add(clone);
 							}
 
