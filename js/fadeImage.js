@@ -19,8 +19,7 @@ function anim() {
 }
 
 function changeImage() {
-  imageIndex++;
-  if (imageIndex >= 11) imageIndex = 1;
+  imageIndex = Math.floor(Math.random() * imageNum);
   let str = 'url(img/' + imageIndex + '.png);';
   screenDiv.style.backgroundImage = 'url(img/' + imageIndex + '.png)';
 }
