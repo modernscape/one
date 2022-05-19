@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', init);
 // document.addEventListener('keypress', keypress_ivent);
 var screenDiv;
 var imageIndex = 0;
-var imageNum = 11;
+var imageNum = 20;
 var tl;
 
 function init() {
